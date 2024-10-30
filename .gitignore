@@ -2,3 +2,4 @@ rpa_novo.py
 rpa_transferencia.py
 rpa.ipynb
 .env
+.gitignore
