@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulário de Pesquisa</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Como o Olimpo vê você!</h1>
+      <form method="POST" action="/">
+        <label for="cidade">Em que cidade você mora?:</label>
+        <p style="align-items: start">
+          (Caso sua opção não tenha sido citada, escolha 'São Paulo')
+        </p>
+        <select name="cidade" id="cidade" required>
+          {% for option in ['São Paulo', 'Osasco', 'Carapicuíba', 'Itamonte',
+          'Itaquaquecetuba', 'Itajuba', 'São Bernardo Do Campo', 'Vitória',
+          'Andradina', 'Bauru', 'Sumaré', 'Vila Velha', 'Serra', 'Cuiabá',
+          'Cariacica', 'Caieiras', 'Rio De Janeiro', 'João Pessoa', 'Canoas',
+          'Cotia'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="tipo_moradia">Tipo de Moradia:</label>
+        <select name="tipo_moradia" id="tipo_moradia" required>
+          {% for option in ['Apartamento', 'Casa'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="pessoas_casa">Número de Pessoas na Casa:</label>
+        <select name="pessoas_casa" id="pessoas_casa" required>
+          {% for option in ['1', 'Nenhuma', '3', '2', '4 ou mais'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="satisfacao_comunicacao_comunidade"
+          >Satisfação com Comunicação na Comunidade:</label
+        >
+        <select
+          name="satisfacao_comunicacao_comunidade"
+          id="satisfacao_comunicacao_comunidade"
+          required
+        >
+          {% for option in range(1, 11) %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="frequencia_contato">Frequência de Contato:</label>
+        <select name="frequencia_contato" id="frequencia_contato" required>
+          {% for option in ['Raramente', 'Ocasionalmente', 'Nunca',
+          'Frequentemente', 'Diariamente'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="comunicacao_importante">Comunicação é Importante?</label>
+        <select
+          name="comunicacao_importante"
+          id="comunicacao_importante"
+          required
+        >
+          {% for option in ['Sim', 'Não', 'Não sei'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="usa_plataforma">Usa Plataforma?</label>
+        <select name="usa_plataforma" id="usa_plataforma" required>
+          {% for option in ['Não', 'Sim'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="faixa_etaria">Faixa Etária:</label>
+        <select name="faixa_etaria" id="faixa_etaria" required>
+          {% for option in ['Maior ou igual a 43 anos', 'Menor ou igual a 17 anos', 'Entre 36 e 42 anos', 'Entre 18 e 24 anos', 'Entre 30 e 36 anos', 'Entre 24 e 30 anos'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="qualidade_vida">Qualidade de Vida:</label>
+        <select name="qualidade_vida" id="qualidade_vida" required>
+          {% for option in ['Boa', 'Ótima', 'Ruim', 'Péssima'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="situacao_trabalho">Situação de Trabalho:</label>
+        <select name="situacao_trabalho" id="situacao_trabalho" required>
+          {% for option in ['Empregado', 'Autônomo', 'Desempregado'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="renda_familiar">Renda Familiar:</label>
+        <select name="renda_familiar" id="renda_familiar" required>
+          {% for option in ['Classe C', 'Classe B', 'Classe E', 'Classe D',
+          'Classe A'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="animais">Animais de Estimação:</label>
+        <select name="animais" id="animais" required>
+          {% for option in ['Não', 'Sim'] %}
+          <option value="{{ option }}">{{ option }}</option>
+          {% endfor %}
+        </select>
+        <input class="btn" type="submit" value="Enviar" />
+      </form>
+    </div>
+  </body>
+</html>
