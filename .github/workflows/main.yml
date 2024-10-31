@@ -1,0 +1,45 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: EC2 - Formulário de IA
+        run: |
+          echo "Conectando no EC2"
+          echo "${{secrets.AWS_KEY_AI}}" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ubuntu@ec2-100-29-149-31.compute-1.amazonaws.com "
+            cd olimpo-data-analytics/'Modelo de IA'/flask/ &&
+            git pull &&
+            ./iniciarApp.sh "
+            
+      # - name: Deploy no Render - Aplicativo de forms - AI
+      #   uses: johnbeynon/render-deploy-action@v0.0.8
+      #   with: 
+      #     service-id: srv-csh1a5pu0jms73emdh40
+      #     api-key: rnd_s1hFGv89lDin5Kuo3s00iCFDTaqF
+            
+      - name: EC2 - Rpa de tranferência de dados
+        run: |
+          echo "Conectando no EC2"
+          echo "${{secrets.AWS_KEY_TRANSFER}}" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ubuntu@ec2-100-29-149-31.compute-1.amazonaws.com "
+            cd delfis-data-analytics/ &&
+            git pull &&
+            ./executar.sh "
