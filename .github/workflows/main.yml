@@ -35,6 +35,6 @@ jobs:
           echo "Conectando no EC2"
           echo "${{secrets.AWS_KEY_RPA}}" > private_key && chmod 600 private_key
           ssh -o StrictHostKeyChecking=no -i private_key ubuntu@ec2-100-29-149-31.compute-1.amazonaws.com "
-            cd delfis-data-analytics/ &&
+            cd olimpo-data-analytics/ &&
             git pull &&
             ./executar.sh "
