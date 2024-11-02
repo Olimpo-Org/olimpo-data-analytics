@@ -5,7 +5,7 @@ CREATE TABLE Gender (
     name VARCHAR(20) NOT NULL UNIQUE
 );
 
-CREATE TABLE Interest(
+CREATE TABLE Interest (
     ID INT PRIMARY KEY,
     name VARCHAR(20) NOT NULL UNIQUE DEFAULT 'Nenhum'
 );
@@ -19,7 +19,7 @@ CREATE TABLE Customer (
     cpf VARCHAR(14) NOT NULL UNIQUE,
     profile_image TEXT,
     gender_id INT,
-    interest_id INT,
+    interest_id INT DEFAULT 0,
     FOREIGN KEY (gender_id) REFERENCES Gender(ID),
     FOREIGN KEY (interest_id) REFERENCES Interest(ID)
 );
