@@ -409,7 +409,7 @@ CREATE OR REPLACE PROCEDURE insert_community(
     p_name VARCHAR,
     p_date DATE,
     p_image TEXT,
-    p_customer_cpf VARCHAR
+    p_customer_id INT
 )
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -423,7 +423,32 @@ BEGIN
     VALUES (v_new_id, p_name, p_date, p_image)
     RETURNING ID INTO v_community_id;
 
-    CALL add_administrator(p_customer_cpf, v_community_id);
+    CALL add_administrator(p_customer_id, v_community_id);
+    CALL add_customer_to_community(p_customer_id, v_community_id);
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE insert_community(
+    p_name VARCHAR,
+    p_date DATE,
+    p_image TEXT,
+    p_neighbourhood VARCHAR,
+    p_customer_id INT
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_community_id INT;
+    v_new_id INT;
+BEGIN
+    -- Calcula o próximo ID
+    SELECT COALESCE(MAX(ID), 0) + 1 INTO v_new_id FROM Community;
+
+    INSERT INTO Community (ID, name, start_date, neighborhood, image)
+    VALUES (v_new_id, p_name, p_date, p_neighbourhood, p_image)
+    RETURNING ID INTO v_community_id;
+
+    CALL add_administrator(p_customer_id, v_community_id);
+    CALL add_customer_to_community(p_customer_id, v_community_id);
 END;
 $$;
 
@@ -453,45 +478,40 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE add_customer_to_community(
-    p_cpf VARCHAR,
+    p_customer_id INT,
     p_community_id INT
 )
 LANGUAGE plpgsql AS $$
-DECLARE
-    v_customer_id INT;
 BEGIN
-    SELECT ID INTO v_customer_id FROM Customer WHERE cpf = p_cpf;
+    PERFORM ID FROM Customer WHERE ID = p_customer_id;
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Customer not found with CPF: %', p_cpf;
+        RAISE EXCEPTION 'Customer not found with ID: %', p_customer_id;
     END IF;
 
     INSERT INTO Community_Customer (customer_id, community_id)
-    VALUES (v_customer_id, p_community_id);
+    VALUES (p_customer_id, p_community_id);
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE add_administrator(
-    p_customer_cpf VARCHAR,
+    p_customer_id INT,
     p_community_id INT
 )
 LANGUAGE plpgsql AS $$
-DECLARE
-    v_customer_id INT;
 BEGIN
-    -- Obter o ID do cliente com base no CPF fornecido
-    SELECT ID INTO v_customer_id FROM Customer WHERE cpf = p_customer_cpf;
+    PERFORM ID FROM Customer WHERE ID = p_customer_id;
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Customer not found with CPF: %', p_customer_cpf;
+        RAISE EXCEPTION 'Customer not found with ID: %', p_customer_id;
     END IF;
 
     -- Inserir o ID do cliente na tabela Administrator
     INSERT INTO Administrator (customer_id, community_id)
-    VALUES (v_customer_id, p_community_id);
+    VALUES (p_customer_id, p_community_id);
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION check_administrator(
-    p_customer_cpf VARCHAR,
+    p_customer_id INT,
     p_community_id INT
 ) RETURNS BOOLEAN AS $$
 DECLARE
@@ -499,7 +519,7 @@ DECLARE
 BEGIN
     SELECT EXISTS (
         SELECT 1 FROM Administrator 
-        WHERE customer_cpf = p_customer_cpf AND community_id = p_community_id
+        WHERE customer_id = p_customer_id AND community_id = p_community_id
     ) INTO v_exists;
 
     RETURN v_exists;
@@ -582,34 +602,35 @@ FOR EACH ROW EXECUTE FUNCTION log_plan_action();
 
 -- -- Inserindo dados iniciais
 
--- INSERT INTO Gender (id, name) VALUES
--- (1, 'Feminino'),
--- (2, 'Masculino'),
--- (3, 'Outro');
+INSERT INTO Gender (id, name) VALUES
+(1, 'Feminino'),
+(2, 'Masculino'),
+(3, 'Outro');
 
--- INSERT INTO Category (id, name) VALUES
--- (1, 'Doações'),
--- (2, 'Venda'),
--- (3, 'Serviços');
+INSERT INTO Category (id, name) VALUES
+(1, 'Doações'),
+(2, 'Venda'),
+(3, 'Serviços');
     
--- INSERT INTO Plan (id, name, value) VALUES
--- (1, 'Semideus', 4.9),
--- (2, 'Deus', 9.9),
--- (3, 'Titã', 14.9);
+INSERT INTO Plan (id, name, value) VALUES
+(1, 'Semideus', 4.9),
+(2, 'Deus', 9.9),
+(3, 'Titã', 14.9);
 
--- INSERT INTO Interest (id, name) VALUES
--- (1, 'Tecnologia'),
--- (2, 'Estética'),
--- (3, 'Saúde'),
--- (4, 'Educação'),
--- (5, 'Esportes'),
--- (6, 'Música'),
--- (7, 'Culinária'),
--- (8, 'Viagens');
+INSERT INTO Interest (id, name) VALUES
+(1, 'Tecnologia'),
+(2, 'Estética'),
+(3, 'Saúde'),
+(4, 'Educação'),
+(5, 'Esportes'),
+(6, 'Música'),
+(7, 'Culinária'),
+(8, 'Viagens');
 
--- -- Exemplos de inserções
+-- Exemplos de inserções
 -- CALL insert_customer('test@example.com', 'password', 'Test', 'User', '12345678900', 'Masculino', 'Tecnologia', 'base64_image_string');
--- CALL insert_community('Community Test', CURRENT_DATE, 'base64_image_string', '12345678900');
+-- CALL insert_customer('test2@example.com', 'password2', 'Test2', 'User2', '12345678901', 'Feminino', 'Saúde', 'base64_image_string');
+-- CALL insert_community('Community Test', CURRENT_DATE, 'base64_image_string', 1);
 -- CALL insert_publication(CURRENT_DATE, 5, 'Descrição da nova publicação', '12345678900');
 -- CALL insert_announcement(1, 'Sender ID', 'Sender Name', 'base64_image_string', 'announcement description', 'doação');
 -- CALL insert_advertisement('Ad description', CURRENT_DATE, 'Venda', 'Product Name', 'Semideus', '12345678900', 'base64_image_string');
@@ -635,5 +656,5 @@ FOR EACH ROW EXECUTE FUNCTION log_plan_action();
 -- SELECT * FROM Log_Plan;
 -- SELECT * FROM Log_Advertisement;
 
--- SELECT check_administrator('12345678900', 1);
--- CALL add_customer_to_community('12345678900', 1);
+-- SELECT check_administrator(1, 1);
+-- CALL add_customer_to_community(2, 1);

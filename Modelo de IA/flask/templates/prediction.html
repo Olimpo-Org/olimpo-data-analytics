@@ -20,8 +20,12 @@
       <h1>Resultado da Predição</h1>
       <p>Com base nas suas respostas, o modelo fez a seguinte predição:</p>
 
-      <div class="prediction-result">
-        <p><strong>Predição:</strong> {{ prediction }}</p>
+      <div style="margin-bottom: 30px; font-size: 20px;" class="prediction-result">
+        {% if prediction == "Sim" %}
+          <p>Parabéns! Você é um <strong>potencial cliente do Olimpo</strong>.</p>
+        {% else %}
+          <p>Infelizmente, você <strong>não é considerado um cliente potencial do Olimpo</strong> neste momento.</p>
+        {% endif %}
       </div>
 
       <a href="{{ url_for('home') }}" class="btn">Voltar ao formulário</a>
