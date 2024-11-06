@@ -1,6 +1,6 @@
-Flask==2.2.2
-joblib==1.2.0
-pandas==1.5.3
-psycopg2==2.9.5
-python-dotenv==0.21.0
-sqlalchemy==1.4.41
+Flask
+joblib
+pandas
+psycopg2
+python-dotenv
+sqlalchemy

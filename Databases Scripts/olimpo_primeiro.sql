@@ -1,6 +1,6 @@
 CREATE TABLE Categoria 
 (
-    ID INT PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL UNIQUE,
     isUpdated BOOLEAN DEFAULT false,
     isDeleted BOOLEAN DEFAULT false
@@ -8,7 +8,7 @@ CREATE TABLE Categoria
 
 CREATE TABLE Interesse 
 (
-    ID INT PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     nome VARCHAR(255) NOT NULL UNIQUE,
     isUpdated BOOLEAN DEFAULT false,
     isDeleted BOOLEAN DEFAULT false
@@ -48,7 +48,7 @@ CREATE TABLE Telefone_Cliente
 
 CREATE TABLE Plano 
 ( 
-    ID INT PRIMARY KEY,  
+    ID SERIAL PRIMARY KEY,  
     nome VARCHAR(255),  
     valor FLOAT CHECK (valor >= 0),
     isUpdated BOOLEAN DEFAULT false,
@@ -62,18 +62,18 @@ CREATE TABLE Anuncio
     descricao VARCHAR(255),  
     dataDivulgacao DATE DEFAULT CURRENT_DATE,  
 	preco FLOAT CHECK (preco >= 0),
-    categoria INT,  
+    idCategoria INT,  
     linkImagem TEXT,  
     idCliente INT NOT NULL,
     idPlano INT NOT NULL,
-    FOREIGN KEY (categoria) REFERENCES Categoria(ID),
+    FOREIGN KEY (idCategoria) REFERENCES Categoria(ID),
     FOREIGN KEY (idCliente) REFERENCES Cliente(ID),
     FOREIGN KEY (idPlano) REFERENCES Plano(ID)
 ); 
 
 CREATE TABLE Admin
 (
-	ID INT PRIMARY KEY,
+	ID SERIAL PRIMARY KEY,
 	usuario VARCHAR(255),
     senha VARCHAR(255),
 	isUpdated BOOLEAN DEFAULT false,
