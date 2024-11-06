@@ -25,14 +25,14 @@ CREATE TABLE Customer (
 );
 
 CREATE TABLE Phone_Customer (
-    ID INT PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     phone VARCHAR(15) NOT NULL,
     customer_id INT,
     FOREIGN KEY (customer_id) REFERENCES Customer(ID)
 );
 
 CREATE TABLE Address (
-    ID INT PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     neighborhood VARCHAR(255),
     state VARCHAR(255),
     municipality VARCHAR(255),
@@ -60,16 +60,16 @@ CREATE TABLE Community (
 );
 
 CREATE TABLE Advertisement (
-    ID INT PRIMARY KEY,
+    ID SERIAL PRIMARY KEY,
     title VARCHAR(255),
     description VARCHAR(255),
     publication_date DATE DEFAULT CURRENT_DATE,
     price FLOAT,
-    category INT,
+    category_id INT,
     image TEXT,
     user_id INT,
     plan_id INT,
-    FOREIGN KEY (category) REFERENCES Category(ID),
+    FOREIGN KEY (category_id) REFERENCES Category(ID),
     FOREIGN KEY (user_id) REFERENCES Customer(ID) ON DELETE CASCADE,
     FOREIGN KEY (plan_id) REFERENCES Plan(ID)
 );
@@ -200,31 +200,14 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE update_customer(
-    p_customer_id INT,
-    p_email VARCHAR,
-    p_name VARCHAR,
-    p_surname VARCHAR,
-    p_cpf VARCHAR,
-    p_gender_name VARCHAR,
-    p_profile_image TEXT
+    p_field VARCHAR,   
+    p_new_value VARCHAR,    
+    p_customer_id INT  
 )
 LANGUAGE plpgsql AS $$
-DECLARE
-    v_gender_id INT;
 BEGIN
-    SELECT ID INTO v_gender_id FROM Gender WHERE name = p_gender_name;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Gender not found: %', p_gender_name;
-    END IF;
-
-    UPDATE Customer
-    SET email = p_email,
-        name = p_name,
-        surname = p_surname,
-        cpf = p_cpf,
-        gender_id = v_gender_id,
-        profile_image = p_profile_image
-    WHERE ID = p_customer_id;
+    EXECUTE format('UPDATE Customer SET %I = $1 WHERE ID = $2', p_field)
+    USING p_new_value, p_customer_id;
 END;
 $$;
 
@@ -244,22 +227,16 @@ CREATE OR REPLACE PROCEDURE insert_advertisement(
     p_category_name VARCHAR,
     p_title VARCHAR,
     p_plan_name VARCHAR,
-    p_customer_cpf VARCHAR,
+    p_customer_id INT,
+    p_price FLOAT,
     p_image TEXT
 )
 LANGUAGE plpgsql AS $$
 DECLARE
-    v_category INT;
-    v_customer_id INT;
+    v_category_id INT;
     v_plan_id INT;
-    v_new_id INT;
 BEGIN
-    SELECT ID INTO v_customer_id FROM Customer WHERE cpf = p_customer_cpf;
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'Customer not found with CPF: %', p_customer_cpf;
-    END IF;
-
-    SELECT ID INTO v_category FROM Category WHERE name = p_category_name;
+    SELECT ID INTO v_category_id FROM Category WHERE name = p_category_name;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Category not found: %', p_category_name;
     END IF;
@@ -269,27 +246,20 @@ BEGIN
         RAISE EXCEPTION 'Plan not found: %', p_plan_name;
     END IF;
 
-    -- Calcula o próximo ID
-    SELECT COALESCE(MAX(ID), 0) + 1 INTO v_new_id FROM Advertisement;
-
-    INSERT INTO Advertisement (ID, description, publication_date, category, title, user_id, plan_id, image)
-    VALUES (v_new_id, p_description, p_date, v_category, p_title, v_customer_id, v_plan_id, p_image);
+    INSERT INTO Advertisement (title, description, publication_date, price, category_id, image, user_id, plan_id)
+    VALUES (p_title, p_description, current, p_price, v_category_id, p_image, p_customer_id, v_plan_id);
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE update_advertisement(
-    p_advertisement_id INT,
-    p_description VARCHAR,
-    p_title VARCHAR,
-    p_price FLOAT
+    p_field VARCHAR,   
+    p_new_value VARCHAR,    
+    p_advertisement_id INT  
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE Advertisement
-    SET description = p_description,
-        title = p_title,
-        price = p_price
-    WHERE ID = p_advertisement_id;
+    EXECUTE format('UPDATE Advertisement SET %I = $1 WHERE ID = $2', p_field)
+    USING p_new_value, p_advertisement_id;
 END;
 $$;
 
@@ -324,24 +294,14 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE update_announcement(
-    p_announcement_id INT,
-    p_community_id INT,
-    p_sender_id VARCHAR,
-    p_sender_name VARCHAR,
-    p_image TEXT,
-    p_description VARCHAR,
-    p_tag VARCHAR
+    p_field VARCHAR,   
+    p_new_value VARCHAR,    
+    p_announcement_id INT  
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE Announcement
-    SET community_id = p_community_id,
-        sender_id = p_sender_id,
-        sender_name = p_sender_name,
-        image = p_image,
-        description = p_description,
-        tag = p_tag
-    WHERE ID = p_announcement_id;
+    EXECUTE format('UPDATE Announcement SET %I = $1 WHERE ID = $2', p_field)
+    USING p_new_value, p_announcement_id;
 END;
 $$;
 
@@ -380,18 +340,14 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE update_publication(
-    p_publication_id INT,
-    p_publication_date DATE,
-    p_likes INT,
-    p_description VARCHAR
+    p_field VARCHAR,   
+    p_new_value VARCHAR,    
+    p_publication_id INT  
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE Publication
-    SET publication_date = p_publication_date,
-        likes = p_likes,
-        description = p_description
-    WHERE ID = p_publication_id;
+    EXECUTE format('UPDATE Publication SET %I = $1 WHERE ID = $2', p_field)
+    USING p_new_value, p_publication_id;
 END;
 $$;
 
@@ -453,18 +409,14 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE update_community(
-    p_community_id INT,
-    p_name VARCHAR,
-    p_date DATE,
-    p_image TEXT
+    p_field VARCHAR,   
+    p_new_value VARCHAR,    
+    p_community_id INT  
 )
 LANGUAGE plpgsql AS $$
 BEGIN
-    UPDATE Community
-    SET name = p_name,
-        start_date = p_date,
-        image = p_image
-    WHERE ID = p_community_id;
+    EXECUTE format('UPDATE Community SET %I = $1 WHERE ID = $2', p_field)
+    USING p_new_value, p_community_id;
 END;
 $$;
 
@@ -602,30 +554,30 @@ FOR EACH ROW EXECUTE FUNCTION log_plan_action();
 
 -- -- Inserindo dados iniciais
 
-INSERT INTO Gender (id, name) VALUES
-(1, 'Feminino'),
-(2, 'Masculino'),
-(3, 'Outro');
+-- INSERT INTO Gender (id, name) VALUES
+-- (1, 'Feminino'),
+-- (2, 'Masculino'),
+-- (3, 'Outro');
 
-INSERT INTO Category (id, name) VALUES
-(1, 'Doações'),
-(2, 'Venda'),
-(3, 'Serviços');
+-- INSERT INTO Category (id, name) VALUES
+-- (1, 'Doações'),
+-- (2, 'Venda'),
+-- (3, 'Serviços');
     
-INSERT INTO Plan (id, name, value) VALUES
-(1, 'Semideus', 4.9),
-(2, 'Deus', 9.9),
-(3, 'Titã', 14.9);
+-- INSERT INTO Plan (id, name, value) VALUES
+-- (1, 'Semideus', 4.9),
+-- (2, 'Deus', 9.9),
+-- (3, 'Titã', 14.9);
 
-INSERT INTO Interest (id, name) VALUES
-(1, 'Tecnologia'),
-(2, 'Estética'),
-(3, 'Saúde'),
-(4, 'Educação'),
-(5, 'Esportes'),
-(6, 'Música'),
-(7, 'Culinária'),
-(8, 'Viagens');
+-- INSERT INTO Interest (id, name) VALUES
+-- (1, 'Tecnologia'),
+-- (2, 'Estética'),
+-- (3, 'Saúde'),
+-- (4, 'Educação'),
+-- (5, 'Esportes'),
+-- (6, 'Música'),
+-- (7, 'Culinária'),
+-- (8, 'Viagens');
 
 -- Exemplos de inserções
 -- CALL insert_customer('test@example.com', 'password', 'Test', 'User', '12345678900', 'Masculino', 'Tecnologia', 'base64_image_string');
@@ -633,7 +585,7 @@ INSERT INTO Interest (id, name) VALUES
 -- CALL insert_community('Community Test', CURRENT_DATE, 'base64_image_string', 1);
 -- CALL insert_publication(CURRENT_DATE, 5, 'Descrição da nova publicação', '12345678900');
 -- CALL insert_announcement(1, 'Sender ID', 'Sender Name', 'base64_image_string', 'announcement description', 'doação');
--- CALL insert_advertisement('Ad description', CURRENT_DATE, 'Venda', 'Product Name', 'Semideus', '12345678900', 'base64_image_string');
+-- CALL insert_advertisement('Produto', current_date, 'Venda', 'A', 'Semideus', 2, 2.1, 'aaa')
 
 -- -- Exemplos de atualização
 -- CALL update_customer(1, 'new_email@example.com', 'New Name', 'New Surname', '12345678900', 'Feminino', 'new_base64_image_string');
