@@ -20,15 +20,15 @@ CREATE TABLE Customer (
     profile_image TEXT,
     gender_id INT,
     interest_id INT DEFAULT 0,
-    FOREIGN KEY (gender_id) REFERENCES Gender(ID),
-    FOREIGN KEY (interest_id) REFERENCES Interest(ID)
+    FOREIGN KEY (gender_id) REFERENCES Gender(ID) ON DELETE CASCADE,
+    FOREIGN KEY (interest_id) REFERENCES Interest(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Phone_Customer (
     ID SERIAL PRIMARY KEY,
     phone VARCHAR(15) NOT NULL,
     customer_id INT,
-    FOREIGN KEY (customer_id) REFERENCES Customer(ID)
+    FOREIGN KEY (customer_id) REFERENCES Customer(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Address (
@@ -37,7 +37,7 @@ CREATE TABLE Address (
     state VARCHAR(255),
     municipality VARCHAR(255),
     customer_id INT,
-    FOREIGN KEY (customer_id) REFERENCES Customer(ID)
+    FOREIGN KEY (customer_id) REFERENCES Customer(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Category (
@@ -69,9 +69,9 @@ CREATE TABLE Advertisement (
     image TEXT,
     user_id INT,
     plan_id INT,
-    FOREIGN KEY (category_id) REFERENCES Category(ID),
+    FOREIGN KEY (category_id) REFERENCES Category(ID) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Customer(ID) ON DELETE CASCADE,
-    FOREIGN KEY (plan_id) REFERENCES Plan(ID)
+    FOREIGN KEY (plan_id) REFERENCES Plan(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Announcement (
@@ -199,6 +199,37 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE PROCEDURE insert_customer(
+    p_email VARCHAR,
+    p_password VARCHAR,
+    p_name VARCHAR,
+    p_surname VARCHAR,
+    p_cpf VARCHAR,
+    p_gender_name VARCHAR,
+    p_profile_image TEXT
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_gender_id INT;
+    v_new_id INT;
+BEGIN
+    IF EXISTS (SELECT 1 FROM Customer WHERE cpf = p_cpf) THEN
+        RAISE EXCEPTION 'Customer already exists with CPF: %', p_cpf;
+    END IF;
+
+    SELECT ID INTO v_gender_id FROM Gender WHERE name = p_gender_name;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Gender not found: %', p_gender_name;
+    END IF;
+
+    -- Calcula o próximo ID
+    SELECT COALESCE(MAX(ID), 0) + 1 INTO v_new_id FROM Customer;
+
+    INSERT INTO Customer (ID, email, password, name, surname, cpf, gender_id, profile_image)
+    VALUES (v_new_id, p_email, p_password, p_name, p_surname, p_cpf, v_gender_id, p_profile_image);
+END;
+$$;
+
 CREATE OR REPLACE PROCEDURE update_customer(
     p_field VARCHAR,   
     p_new_value VARCHAR,    
@@ -247,7 +278,7 @@ BEGIN
     END IF;
 
     INSERT INTO Advertisement (title, description, publication_date, price, category_id, image, user_id, plan_id)
-    VALUES (p_title, p_description, current, p_price, v_category_id, p_image, p_customer_id, v_plan_id);
+    VALUES (p_title, p_description, current_date, p_price, v_category_id, p_image, p_customer_id, v_plan_id);
 END;
 $$;
 
@@ -554,59 +585,7 @@ FOR EACH ROW EXECUTE FUNCTION log_plan_action();
 
 -- -- Inserindo dados iniciais
 
--- INSERT INTO Gender (id, name) VALUES
--- (1, 'Feminino'),
--- (2, 'Masculino'),
--- (3, 'Outro');
-
--- INSERT INTO Category (id, name) VALUES
--- (1, 'Doações'),
--- (2, 'Venda'),
--- (3, 'Serviços');
-    
--- INSERT INTO Plan (id, name, value) VALUES
--- (1, 'Semideus', 4.9),
--- (2, 'Deus', 9.9),
--- (3, 'Titã', 14.9);
-
--- INSERT INTO Interest (id, name) VALUES
--- (1, 'Tecnologia'),
--- (2, 'Estética'),
--- (3, 'Saúde'),
--- (4, 'Educação'),
--- (5, 'Esportes'),
--- (6, 'Música'),
--- (7, 'Culinária'),
--- (8, 'Viagens');
-
--- Exemplos de inserções
--- CALL insert_customer('test@example.com', 'password', 'Test', 'User', '12345678900', 'Masculino', 'Tecnologia', 'base64_image_string');
--- CALL insert_customer('test2@example.com', 'password2', 'Test2', 'User2', '12345678901', 'Feminino', 'Saúde', 'base64_image_string');
--- CALL insert_community('Community Test', CURRENT_DATE, 'base64_image_string', 1);
--- CALL insert_publication(CURRENT_DATE, 5, 'Descrição da nova publicação', '12345678900');
--- CALL insert_announcement(1, 'Sender ID', 'Sender Name', 'base64_image_string', 'announcement description', 'doação');
--- CALL insert_advertisement('Produto', current_date, 'Venda', 'A', 'Semideus', 2, 2.1, 'aaa')
-
--- -- Exemplos de atualização
--- CALL update_customer(1, 'new_email@example.com', 'New Name', 'New Surname', '12345678900', 'Feminino', 'new_base64_image_string');
--- CALL update_announcement(1, 1, 'new_sender_id', 'New Sender Name', 'new_base64_image_string', 'Updated description', 'nova_tag');
--- CALL update_publication(1, CURRENT_DATE, 10, 'Updated publication description');
--- CALL update_advertisement(1, 'Updated Ad Description', 'Updated Title', 99.99);
--- CALL update_community(1, 'Updated Community Name', CURRENT_DATE, 'new_base64_image_string');
-
--- -- Exemplos de remoção
--- CALL delete_customer(1);
--- CALL delete_announcement(1);
--- CALL delete_publication(1);
--- CALL delete_advertisement(1);
--- CALL delete_community(1);
-
--- SELECT * FROM Log_Customer;
--- SELECT * FROM Log_Announcement;
--- SELECT * FROM Log_Publication;
--- SELECT * FROM Log_Community;
--- SELECT * FROM Log_Plan;
--- SELECT * FROM Log_Advertisement;
-
--- SELECT check_administrator(1, 1);
--- CALL add_customer_to_community(2, 1);
+INSERT INTO Gender (id, name) VALUES
+(1, 'Feminino'),
+(2, 'Masculino'),
+(3, 'Outro');
