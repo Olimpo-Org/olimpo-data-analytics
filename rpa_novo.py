@@ -5,8 +5,8 @@ import os
 from sqlalchemy import create_engine, Table, MetaData, select, insert, update, delete
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
-# Funções
 
+# Funções
 def tratamento_tabela(df):
     if 'isupdated' in df.columns and 'isdeleted' in df.columns:
         df_novo = pd.DataFrame({
@@ -73,8 +73,12 @@ def sync_table(engine_dest, engine_source, df_all, df_changes, tabela_nome_dest,
     except SQLAlchemyError as e:
         print(f"Erro ao sincronizar dados: {e}")
     finally:
+        conn_dest.commit()
+        conn_source.commit()
         conn_dest.close()
         conn_source.close()
+
+
 load_dotenv()
 # Configurações dos bancos de dados
 source_db_url = os.getenv("DB_PRIMEIRO_ANO")

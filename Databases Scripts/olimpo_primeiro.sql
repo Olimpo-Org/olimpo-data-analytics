@@ -1,18 +1,13 @@
-DROP TABLE IF EXISTS Anuncio;
-DROP TABLE IF EXISTS Telefone_Cliente;
-DROP TABLE IF EXISTS Endereco;
-DROP TABLE IF EXISTS Admin_AreaRestrita;
-DROP TABLE IF EXISTS Plano;
-DROP TABLE IF EXISTS Cliente;
-
-CREATE TABLE Categoria (
+CREATE TABLE Categoria 
+(
     ID INT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL UNIQUE,
     isUpdated BOOLEAN DEFAULT false,
     isDeleted BOOLEAN DEFAULT false
 );
 
-CREATE TABLE Interesse (
+CREATE TABLE Interesse 
+(
     ID INT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL UNIQUE,
     isUpdated BOOLEAN DEFAULT false,
