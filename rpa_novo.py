@@ -2,7 +2,7 @@ import time
 import pandas as pd
 import numpy as np
 import os
-from sqlalchemy import create_engine, Table, MetaData, select, insert, update, delete
+from sqlalchemy import create_engine, Table, MetaData, select, insert, update, delete, text
 from sqlalchemy.exc import SQLAlchemyError
 from dotenv import load_dotenv
 
@@ -69,6 +69,11 @@ def sync_table(engine_dest, engine_source, df_all, df_changes, tabela_nome_dest,
             stmt_delete_source = delete(table_source).where(table_source.c.isdeleted == True)
             conn_source.execute(stmt_delete_source)
             print(f"Registros deletados da tabela {tabela_nome_source} onde isdeleted é True.")
+
+        conn_source.execute(
+            text(f"UPDATE {table_source} SET isUpdated = false WHERE id IN :ids"),
+            {'ids': tuple(df_changes['id'].tolist())}
+        )
 
     except SQLAlchemyError as e:
         print(f"Erro ao sincronizar dados: {e}")
