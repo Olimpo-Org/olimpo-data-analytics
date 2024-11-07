@@ -71,8 +71,7 @@ def sync_table(engine_dest, engine_source, df_all, df_changes, tabela_nome_dest,
             print(f"Registros deletados da tabela {tabela_nome_source} onde isdeleted é True.")
 
         conn_source.execute(
-            text(f"UPDATE {table_source} SET isUpdated = false WHERE id IN :ids"),
-            {'ids': tuple(df_changes['id'].tolist())}
+            text(f"UPDATE {table_source} SET isUpdated = false")
         )
 
     except SQLAlchemyError as e:
