@@ -69,9 +69,9 @@ def sync_table(engine_dest, engine_source, df_all, df_changes, tabela_nome_dest,
             conn_source.execute(stmt_delete_source)
             print(f"Registros deletados da tabela {tabela_nome_source} onde isdeleted é True.")
 
-        conn_source.execute(
-            text(f"UPDATE {table_source} SET isUpdated = false")
-        )
+        if 'isupdated' in table_source.c:
+            stmt = update(table_source).values(isUpdated=False)
+            conn_source.execute(stmt)
 
     except SQLAlchemyError as e:
         print(f"Erro ao sincronizar dados: {e}")
